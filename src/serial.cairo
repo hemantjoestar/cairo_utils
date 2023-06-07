@@ -1,6 +1,10 @@
 use array::ArrayTrait;
+use array::SpanTrait;
 use serde::Serde;
 use option::OptionTrait;
+use traits::TryInto;
+use debug::PrintTrait;
+
 
 fn serialized_element<T, impl TSerde: serde::Serde<T>, impl TDestruct: Destruct<T>>(
     value: T
@@ -15,3 +19,4 @@ fn deserialized_element<T, impl TSerde: serde::Serde<T>>(
 ) -> T {
     serde::Serde::deserialize(ref data).expect(errmsg)
 }
+
