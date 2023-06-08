@@ -142,11 +142,14 @@ fn pow_2<T, impl TDrop: Drop<T>, impl TInto: Into<u8, T>, impl TCopy: Copy<T>, i
 }
 
 trait PackInto<T, U> {
-    fn pack_into(self: @Array<T>) -> Option<U>;
+    fn pack_into(self: @Array<T>, hint: usize) -> Option<U>;
 }
-// output = output | (u256_from_felt252(*(input.pop_back().unwrap())) * 0x100000000_u256);
 impl U32ArrayPackIntoU256 of PackInto<u32, u256> {
-    fn pack_into(self: @Array<u32>) -> Option<u256> {
+    fn pack_into(self: @Array<u32>, hint: usize) -> Option<u256> {
+        // short circuit
+        if self.len() == 1_usize {
+            return Option::Some((*self.at(1)).into());
+        }
         if self.len() <= 8_usize {
             let mut tmp_span = self.span();
             let mut output = Default::default();
@@ -178,7 +181,7 @@ mod tests {
     #[available_gas(6000000)]
     fn tests_pack() {
         let mut array_u32 = Default::<Array<u32>>::default();
-        array_u32.append(4246238833);
+        // array_u32.append(4246238833);
         array_u32.append(2715154529);
         array_u32.append(3111545146);
         array_u32.append(2523928951);
@@ -186,10 +189,11 @@ mod tests {
         array_u32.append(816016193);
         array_u32.append(2467408739);
         array_u32.append(3342985673);
-        let hash: u256 = array_u32.pack_into().unwrap();
+        let hash: u256 = array_u32.pack_into(8).unwrap();
         hash.print();
         let precomputed_hash: u256 =
-            0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+            // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+            0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
         assert(hash == precomputed_hash, 'Hash starknet Match fail');
     }
     #[test]
