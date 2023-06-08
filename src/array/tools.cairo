@@ -3,7 +3,9 @@ use array::SpanTrait;
 use serde::Serde;
 use option::OptionTrait;
 use traits::TryInto;
+use traits::Into;
 use debug::PrintTrait;
+
 
 impl SpanPrintImpl<
     T, impl TPrint: debug::PrintTrait<T>, impl TCopy: Copy<T>
@@ -112,24 +114,17 @@ fn narrow_move<
     }
     Option::Some(())
 }
-
-trait PackInto<T, U> {
-    fn pack_into(self: @Array<T>) -> Option<U>;
-}
-impl U32ArrayPackIntoU256 of PackInto<u32, u256> {
-    fn pack_into(self: @Array<u32>) -> Option<u256> {
-        if self.len() <= 8_usize {
-            return Option::None(());
-        }
-        Option::None(())
-    }
-}
 // Dangerous function which will fail.n many cases 
 // more of a convenience for now
 // Since overflow Mul panics cant do much
 fn pow_2<T, impl TDrop: Drop<T>, impl TInto: Into<u8, T>, impl TCopy: Copy<T>, impl TMul: Mul<T>>(
     pow: u8
 ) -> Option<T> {
+    // 'pow'.print();
+    // pow.print();
+    if pow == 0 {
+        return Option::Some(Into::into(1_u8));
+    }
     if pow == 1 {
         return Option::Some(Into::into(2_u8));
     }
@@ -145,6 +140,30 @@ fn pow_2<T, impl TDrop: Drop<T>, impl TInto: Into<u8, T>, impl TCopy: Copy<T>, i
         }
     }
 }
+
+trait PackInto<T, U> {
+    fn pack_into(self: @Array<T>) -> Option<U>;
+}
+// output = output | (u256_from_felt252(*(input.pop_back().unwrap())) * 0x100000000_u256);
+impl U32ArrayPackIntoU256 of PackInto<u32, u256> {
+    fn pack_into(self: @Array<u32>) -> Option<u256> {
+        if self.len() <= 8_usize {
+            let mut tmp_span = self.span();
+            let mut output = Default::default();
+            loop {
+                if tmp_span.is_empty() {
+                    break ();
+                }
+                output = output
+                    | ((*(tmp_span.pop_front().unwrap())).into()
+                        * pow_2::<u256>(TryInto::<u32, u8>::try_into(tmp_span.len()).unwrap() * 32)
+                            .unwrap());
+            };
+            return Option::Some(output);
+        }
+        Option::None(())
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::{SpanPrintImpl, copy_into_narrow, move_into_narrow, copy_into_wide, move_into_wide};
@@ -153,10 +172,31 @@ mod tests {
     use debug::PrintTrait;
     use option::OptionTrait;
     use super::pow_2;
+    use super::PackInto;
 
+    #[test]
+    #[available_gas(6000000)]
+    fn tests_pack() {
+        let mut array_u32 = Default::<Array<u32>>::default();
+        array_u32.append(4246238833);
+        array_u32.append(2715154529);
+        array_u32.append(3111545146);
+        array_u32.append(2523928951);
+        array_u32.append(2343742124);
+        array_u32.append(816016193);
+        array_u32.append(2467408739);
+        array_u32.append(3342985673);
+        let hash: u256 = array_u32.pack_into().unwrap();
+        hash.print();
+        let precomputed_hash: u256 =
+            0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        assert(hash == precomputed_hash, 'Hash starknet Match fail');
+    }
     #[test]
     #[available_gas(10000000)]
     fn tests_pow_2() {
+        assert(pow_2::<u256>(0).unwrap() == 0x1, '2pow0');
+        assert(pow_2::<u8>(1).unwrap() == 0x2, '2pow1');
         assert(pow_2::<u256>(32).unwrap() == 0x100000000, '2pow32');
         assert(pow_2(32).unwrap() == 0x100000000_u256, '2pow32');
         assert(pow_2(64).unwrap() == 0x10000000000000000_u256, '2pow64');
