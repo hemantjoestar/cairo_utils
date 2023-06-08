@@ -112,13 +112,66 @@ fn narrow_move<
     }
     Option::Some(())
 }
+
+trait PackInto<T, U> {
+    fn pack_into(self: @Array<T>) -> Option<U>;
+}
+impl U32ArrayPackIntoU256 of PackInto<u32, u256> {
+    fn pack_into(self: @Array<u32>) -> Option<u256> {
+        if self.len() <= 8_usize {
+            return Option::None(());
+        }
+        Option::None(())
+    }
+}
+// Dangerous function which will fail.n many cases 
+// more of a convenience for now
+// Since overflow Mul panics cant do much
+fn pow_2<T, impl TDrop: Drop<T>, impl TInto: Into<u8, T>, impl TCopy: Copy<T>, impl TMul: Mul<T>>(
+    pow: u8
+) -> Option<T> {
+    if pow == 1 {
+        return Option::Some(Into::into(2_u8));
+    }
+    if pow % 2 == 0 {
+        match pow_2::<T>(pow / 2) {
+            Option::Some(v) => Option::Some(v * v),
+            Option::None(_) => Option::None(()),
+        }
+    } else {
+        match pow_2::<T>((pow - 1) / 2) {
+            Option::Some(v) => Option::Some(Into::into(2_u8) * v * v),
+            Option::None(_) => Option::None(()),
+        }
+    }
+}
 #[cfg(test)]
 mod tests {
     use super::{SpanPrintImpl, copy_into_narrow, move_into_narrow, copy_into_wide, move_into_wide};
     use array::ArrayTrait;
     use array::SpanTrait;
     use debug::PrintTrait;
+    use option::OptionTrait;
+    use super::pow_2;
 
+    #[test]
+    #[available_gas(10000000)]
+    fn tests_pow_2() {
+        assert(pow_2::<u256>(32).unwrap() == 0x100000000, '2pow32');
+        assert(pow_2(32).unwrap() == 0x100000000_u256, '2pow32');
+        assert(pow_2(64).unwrap() == 0x10000000000000000_u256, '2pow64');
+        assert(pow_2(96).unwrap() == 0x1000000000000000000000000_u256, '2pow96');
+        assert(pow_2(128).unwrap() == 0x100000000000000000000000000000000_u256, '2pow128');
+        assert(pow_2(160).unwrap() == 0x10000000000000000000000000000000000000000_u256, '2pow160');
+        assert(
+            pow_2(192).unwrap() == 0x1000000000000000000000000000000000000000000000000_u256,
+            '2pow192'
+        );
+        assert(
+            pow_2(224).unwrap() == 0x100000000000000000000000000000000000000000000000000000000_u256,
+            '2pow224'
+        );
+    }
     #[test]
     #[available_gas(1000000)]
     #[should_panic(expected: ('COPY_NARROW_ERROR', ))]
@@ -192,7 +245,7 @@ mod tests {
 //     move_into_wide(u16array, u32array);
 // // copy_array_func::<u16, u8>(u16array,ref u8array);
 // // copy_array_func::<u16, u32>(u16array, ref u8array);
-// // panic_with_test::<u16, u8>(u16array); // Moved error as expected
+// // panic_with_testa:<u16, u8>(u16array); // Moved error as expected
 // // panic_with_test_1::<u16, u8>(u16array); // Moved error as expected
 // }
 }
