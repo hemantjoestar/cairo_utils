@@ -1,4 +1,4 @@
 mod tests;
-mod math;
-mod array;
+mod math_funcs;
+mod array_ops;
 mod serial;
