@@ -117,7 +117,7 @@ fn narrow_move<
 // Dangerous function which will fail.n many cases 
 // more of a convenience for now
 // Since overflow Mul panics cant do much
-fn pow_2<T, impl TDrop: Drop<T>, impl TInto: Into<u8, T>, impl TCopy: Copy<T>, impl TMul: Mul<T>>(
+fn pow_2<T, impl TDrop: Drop<T>, impl U8IntoT: Into<u8, T>, impl TCopy: Copy<T>, impl TMul: Mul<T>>(
     pow: u8
 ) -> Option<T> {
     // 'pow'.print();
@@ -144,23 +144,36 @@ fn pow_2<T, impl TDrop: Drop<T>, impl TInto: Into<u8, T>, impl TCopy: Copy<T>, i
 trait PackInto<T, U> {
     fn pack_into(self: @Array<T>, hint: usize) -> Option<U>;
 }
-impl U32ArrayPackIntoU256 of PackInto<u32, u256> {
-    fn pack_into(self: @Array<u32>, hint: usize) -> Option<u256> {
+// impl U32ArrayPackIntoU256 of PackInto<u32, u256> {
+impl U32ArrayPackIntoU256<
+    T,
+    U,
+    impl TDrop: Drop<T>,
+    impl TCopy: Copy<T>,
+    impl UCopy: Copy<U>,
+    impl UDrop: Drop<U>,
+    impl UMul: Mul<U>,
+    impl UBitOr: BitOr<U>,
+    impl UDefault: Default<U>,
+    impl TIntoU: Into<T, U>,
+    impl U8IntoU: Into<u8, U>,
+    impl TTryIntoU8: TryInto<u32, u8>
+> of PackInto<T, U> {
+    fn pack_into(self: @Array<T>, hint: usize) -> Option<U> {
         // short circuit
         if self.len() == 1_usize {
-            return Option::Some((*self.at(1)).into());
+            return Option::Some(TIntoU::into(*self.at(1)));
         }
-        if self.len() <= 8_usize {
+        if self.len() <= hint {
             let mut tmp_span = self.span();
-            let mut output = Default::default();
+            let mut output = Default::<U>::default();
             loop {
                 if tmp_span.is_empty() {
                     break ();
                 }
                 output = output
-                    | ((*(tmp_span.pop_front().unwrap())).into()
-                        * pow_2::<u256>(TryInto::<u32, u8>::try_into(tmp_span.len()).unwrap() * 32)
-                            .unwrap());
+                    | (TIntoU::into(*(tmp_span.pop_front().unwrap()))
+                        * pow_2::<U>(TTryIntoU8::try_into(tmp_span.len()).unwrap() * 32).unwrap());
             };
             return Option::Some(output);
         }
@@ -176,6 +189,7 @@ mod tests {
     use option::OptionTrait;
     use super::pow_2;
     use super::PackInto;
+    use super::U32ArrayPackIntoU256;
 
     #[test]
     #[available_gas(6000000)]
@@ -190,10 +204,10 @@ mod tests {
         array_u32.append(2467408739);
         array_u32.append(3342985673);
         let hash: u256 = array_u32.pack_into(8).unwrap();
+        // let hash: u256 = U32ArrayPackIntoU256::<u32, u256>::pack_into(@array_u32, 8).unwrap();
         hash.print();
-        let precomputed_hash: u256 =
-            // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
-            0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        let precomputed_hash: u256 = // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
         assert(hash == precomputed_hash, 'Hash starknet Match fail');
     }
     #[test]
