@@ -3,7 +3,7 @@ use array::ArrayTrait;
 use option::OptionTrait;
 use traits::BitOr;
 
-use utils::math_funcs::pow_2;
+use cairo_utils::math_funcs::pow_2;
 
 trait MaxPack<T, U> {
     fn max_pack_into() -> usize;
@@ -81,8 +81,9 @@ mod tests {
         array_u32.append(3342985673);
         let hash: u256 = SpanPackInto(array_u32.span()).unwrap();
         // let hash: u256 = U32ArrayPackIntoU256::<u32, u256>::pack_into(@array_u32, 8).unwrap();
-        let precomputed_hash: u256 = // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
-        0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        let precomputed_hash: u256 =
+            // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+            0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
         assert(hash == precomputed_hash, 'Hash starknet Match fail');
     // let hash: u64 = SpanPackInto(array_u32.span()).unwrap();
     }

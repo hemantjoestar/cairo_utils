@@ -1,2 +1,2 @@
 [crate_roots]
-utils='src'
+cairo_utils='src'
