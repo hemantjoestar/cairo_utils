@@ -3,6 +3,8 @@ if submodules: git submodule update --init --recursive
 
 Utilities common to many project types.
 
+- Sundry: Somethings i wish were in Corelib. have it replicated in many places
+
 - Testing
 - TODO:
   - egcd needs more tests
