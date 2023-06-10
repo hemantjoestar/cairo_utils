@@ -1,3 +1,7 @@
+use debug::PrintTrait;
+use array::SpanTrait;
+use option::OptionTrait;
+
 impl SpanPrintImpl<
     T, impl TPrint: debug::PrintTrait<T>, impl TCopy: Copy<T>
 > of PrintTrait<Span<T>> {
