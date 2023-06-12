@@ -13,17 +13,6 @@ impl U32MacPackU256 of MaxPack<u32, u256> {
         8
     }
 }
-// TODO: Remove if gets added to corelib. made a PR
-impl TBitOrImpl<
-    T, impl TIntoU128: Into<T, u128>, impl U128TryIntoT: TryInto<u128, T>, impl TDrop: Drop<T>, 
-> of BitOr<T> {
-    #[inline(always)]
-    fn bitor(lhs: T, rhs: T) -> T {
-        let lhs_u128 = TIntoU128::into(lhs);
-        let rhs_u128 = TIntoU128::into(rhs);
-        U128TryIntoT::try_into(lhs_u128 | rhs_u128).unwrap()
-    }
-}
 // TODO: Wierd error 
 // error: Trait `core::traits::TryInto::<core::integer::u32, core::integer::u8>` has multiple implementations, in: generic param TTryIntoU8, "core::integer::U32TryIntoU8"
 //  --> panicable:17:11
@@ -74,7 +63,6 @@ mod tests {
     use option::OptionTrait;
     use debug::PrintTrait;
     use super::span_pack;
-    use super::TBitOrImpl;
     #[test]
     #[available_gas(6000000)]
     fn tests_pack() {

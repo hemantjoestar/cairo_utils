@@ -1,18 +1,10 @@
-use integer::{u256_from_felt252, u128_wrapping_add};
 use array::{SpanTrait, ArrayTrait};
-use traits::Into;
-use traits::TryInto;
 use option::OptionTrait;
 use result::ResultTrait;
 use clone::Clone;
-use cairo_utils::array_ops::reverse_self;
-use cairo_utils::array_ops::move_into_wide;
+use cairo_utils::array_ops::{reverse_self, move_into_narrow, span_pack};
 
-// TODO: Put in readme
-// will use u128 since the boolean operations are running using libfuncs and using u64 
-// includes to and from into jumps
-
-fn sha_256(mut bytes: Span<felt252>) -> Result<Array<felt252>, felt252> {
+fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
     // 512 bits or 16 * 32 bit chunks for each iteration
     if (bytes.len() % 16_usize != 0) {
         return Result::Err('Input_length_!=16');
@@ -34,7 +26,7 @@ fn sha_256(mut bytes: Span<felt252>) -> Result<Array<felt252>, felt252> {
             if joined_bytes.len() == 16_usize {
                 break ();
             }
-            joined_bytes.append((*bytes.pop_front().unwrap()).try_into().unwrap());
+            joined_bytes.append(*bytes.pop_front().unwrap());
         };
 
         // Message Loop
@@ -110,9 +102,8 @@ fn sha_256(mut bytes: Span<felt252>) -> Result<Array<felt252>, felt252> {
 
             compression_loop_index = compression_loop_index + 1;
         };
-        let mut for_next_iter: usize = 0;
         loop {
-            if for_next_iter == 8_usize {
+            if working_hash.is_empty() {
                 break ();
             }
 
@@ -121,26 +112,16 @@ fn sha_256(mut bytes: Span<felt252>) -> Result<Array<felt252>, felt252> {
                     ((hash_values.pop_front().unwrap())
                         .wrapping_add(working_hash.pop_front().unwrap()))
                 );
-            for_next_iter = for_next_iter + 1_usize;
         };
     };
 
-    // let mut output = Default::default();
-    // let mut unreverse = 7_usize;
-    // loop {
-    //     if unreverse == 0_usize {
-    //         output.append((*hash_values[unreverse]).into());
-    //         break ();
-    //     }
-    //     output.append((*hash_values[unreverse]).into());
-
-    //     unreverse = unreverse - 1_usize;
-    // };
-	reverse_self::<u128>(ref hash_values);
-    let mut output = Default::default();
-	move_into_wide(hash_values,ref output);
-    Result::Ok(output)
+    reverse_self::<u128>(ref hash_values);
+    let mut output = Default::<Array<u32>>::default();
+    move_into_narrow(hash_values, ref output);
+    Result::Ok(span_pack(output.span()).unwrap())
 }
+
+use integer::u128_wrapping_add;
 
 impl U128Bit32Operations of SHABitOperations<u128> {
     fn wrapping_add(self: u128, other: u128) -> u128 {
@@ -183,6 +164,7 @@ impl U128Bit32Operations of SHABitOperations<u128> {
         (self & 0xFE000000) / 0x2000000 | (self & 0x1FFFFFF) * 0x80
     }
 }
+
 trait SHABitOperations<T> {
     fn shl_30(self: T) -> T;
     fn shr_2(self: T) -> T;

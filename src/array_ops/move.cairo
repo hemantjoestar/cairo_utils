@@ -1,18 +1,11 @@
 use array::SpanTrait;
 use array::ArrayTrait;
 use option::OptionTrait;
-fn move_into_wide<
-    T,
-    U,
-    impl TCopy: Copy<T>,
-    impl TDrop: Drop<T>,
-    impl UCopy: Copy<U>,
-    impl UDrop: Drop<U>,
-    impl TIntoU: Into<T, U>
->(
+fn move_into_wide<T, U, impl TDrop: Drop<T>, impl UDrop: Drop<U>, impl TIntoU: Into<T, U>>(
     mut in: Array<T>, ref out: Array<U>
 ) {
     loop {
+        // accounts for zero usize
         if in.is_empty() {
             break ();
         }
@@ -20,18 +13,12 @@ fn move_into_wide<
     };
 }
 #[panic_with('MOVE_NARROW_ERROR', move_into_narrow)]
-fn narrow_move<
-    T,
-    U,
-    impl TDrop: Drop<T>,
-    impl TCopy: Copy<T>,
-    impl UDrop: Drop<U>,
-    impl TTryIntoU: TryInto<T, U>,
->(
+fn narrow_move<T, U, impl TDrop: Drop<T>, impl UDrop: Drop<U>, impl TTryIntoU: TryInto<T, U>, >(
     mut in: Array<T>, ref out: Array<U>
 ) -> Option<()> {
     let mut return_none = false;
     loop {
+        // accounts for zero usize
         if in.is_empty() {
             break ();
         }
@@ -79,5 +66,27 @@ mod tests {
         move_into_narrow(u32array, ref u8array);
         // move_into_narrow(u32array, ref u8array); //Move Error as expected
         assert(u8array.len() == 4_usize, 'size error');
+    }
+    #[test]
+    #[available_gas(1000000)]
+    fn tests_zero_size_move() {
+        let mut u16array = Default::<Array<u16>>::default();
+        let mut u8array = Default::<Array<u8>>::default();
+        move_into_narrow(u16array, ref u8array);
+        assert(u8array.len() == 0_usize, 'size error');
+    // assert(u16array.len() == 0_usize, 'size error');//Move Error as expected 
+    }
+    #[test]
+    #[available_gas(1000000)]
+    fn tests_one_size_move() {
+        let mut u16array = Default::default();
+        u16array.append(1_u16);
+        let mut u8array = Default::<Array<u8>>::default();
+        move_into_narrow(u16array, ref u8array);
+        assert(u8array.len() == 1_usize, 'size error');
+        let mut u32array = Default::default();
+        u32array.append(255_u32);
+        move_into_narrow(u32array, ref u8array);
+        assert(u8array.len() == 2_usize, 'size error');
     }
 }

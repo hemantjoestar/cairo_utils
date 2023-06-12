@@ -4,3 +4,6 @@ mod move;
 use move::{move_into_narrow, move_into_wide};
 mod pack;
 use pack::{span_pack};
+mod reverse;
+use reverse::{reverse_array, reverse_into, reverse_self};
+

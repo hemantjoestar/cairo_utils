@@ -1,6 +1,7 @@
 use array::SpanTrait;
 use array::ArrayTrait;
 use option::OptionTrait;
+
 #[panic_with('COPY_NARROW_ERROR', copy_into_narrow)]
 fn narrow_copy<
     T,
