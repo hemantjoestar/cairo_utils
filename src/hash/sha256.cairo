@@ -35,20 +35,20 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             if message_loop_index == 64_usize {
                 break ();
             }
-            let sigma_1 = (*joined_bytes[message_loop_index - 15_usize]).rr_7()
+            let sigma_0 = (*joined_bytes[message_loop_index - 15_usize]).rr_7()
                 ^ (*(joined_bytes[message_loop_index - 15_usize])).rr_18()
                 ^ ((*(joined_bytes[message_loop_index - 15_usize])) / 0x8_u128);
-            let sigma_2 = (*(joined_bytes[message_loop_index - 2_usize])).rr_17()
+            let S_1 = (*(joined_bytes[message_loop_index - 2_usize])).rr_17()
                 ^ (*(joined_bytes[message_loop_index - 2_usize])).rr_19()
                 ^ ((*(joined_bytes[message_loop_index - 2_usize])) / 0x400_u128);
             joined_bytes
                 .append(
                     (*(joined_bytes[message_loop_index - 16_usize]))
                         .wrapping_add(
-                            sigma_1
+                            sigma_0
                                 .wrapping_add(
                                     (*(joined_bytes[message_loop_index - 7_usize]))
-                                        .wrapping_add(sigma_2)
+                                        .wrapping_add(S_1)
                                 )
                         )
                 );
@@ -64,14 +64,14 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             if compression_loop_index == 64_usize {
                 break ();
             }
-            let sigma_1 = (*(working_hash[3])).rr_6()
+            let S_1 = (*(working_hash[3])).rr_6()
                 ^ (*(working_hash[3])).rr_11()
                 ^ (*(working_hash[3])).rr_25();
             let choice = (*working_hash[3] & *working_hash[2])
                 ^ ((~(*working_hash[3])) & *working_hash[1]);
             let temp_1 = ((*working_hash[0]))
                 .wrapping_add(
-                    sigma_1
+                    S_1
                         .wrapping_add(
                             choice
                                 .wrapping_add(
@@ -81,13 +81,13 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
                         )
                 );
 
-            let sigma_0 = (*(working_hash[7])).rr_2()
+            let S_0 = (*(working_hash[7])).rr_2()
                 ^ (*(working_hash[7])).rr_13()
                 ^ (*(working_hash[7])).rr_22();
             let majority = (*working_hash[7] & *working_hash[6])
                 ^ (*working_hash[7] & *working_hash[5])
                 ^ (*working_hash[6] & *working_hash[5]);
-            let temp_2 = sigma_0.wrapping_add(majority);
+            let temp_2 = S_0.wrapping_add(majority);
 
             working_hash.pop_front();
             working_hash.append(working_hash.pop_front().unwrap());
@@ -123,7 +123,7 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
 
 use integer::u128_wrapping_add;
 
-impl U128Bit32Operations of SHABitOperations<u128> {
+impl U128Bit32Operations of SHA256BitOperations<u128> {
     fn wrapping_add(self: u128, other: u128) -> u128 {
         u128_wrapping_add(self, other) & 0xFFFFFFFF
     }
@@ -165,7 +165,7 @@ impl U128Bit32Operations of SHABitOperations<u128> {
     }
 }
 
-trait SHABitOperations<T> {
+trait SHA256BitOperations<T> {
     fn shl_30(self: T) -> T;
     fn shr_2(self: T) -> T;
     fn rr_2(self: T) -> T;
