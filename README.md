@@ -11,7 +11,7 @@ Utilities common to many project types.
 - TODO:
   - egcd needs more tests
   - also corelib has egcd. maybe a comparision
-  - sha_256:use u128 since the boolean operations are running using libfuncs and using u64 includes to and from into jumps
+  - sha_256:use u128 since the boolean operations are running using libfuncs and using u64 includes to and from into jumps. Need to attach rust scripts for generating inputs
 
 - Notes to self:
   - array methods consume the array. i need this else forget i mutated the array

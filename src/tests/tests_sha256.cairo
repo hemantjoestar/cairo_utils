@@ -10,7 +10,7 @@ use cairo_utils::hash::sha_256;
 // let test_str = b"starknet";
 #[test]
 #[available_gas(100000000)]
-fn test_less_than_512_bits() {
+fn tests_less_than_512_bits() {
     let mut input = Default::<Array<u32>>::default();
     input.append(0x73746172);
     input.append(0x6B6E6574);
@@ -50,7 +50,7 @@ fn test_less_than_512_bits() {
 // let test_str = b"Cairo is the first Turing-complete language for creating provable programs for general computation.";
 #[test]
 #[available_gas(150000000)]
-fn test_more_than_512_bits() {
+fn tests_more_than_512_bits() {
     let mut input = Default::<Array<u32>>::default();
     input.append(0x43616972);
     input.append(0x6F206973);
@@ -106,7 +106,7 @@ fn test_more_than_512_bits() {
 // Cairo Wwhitepaper Abstract
 #[test]
 #[available_gas(400000000)]
-fn should_pass() {
+fn tests_more_than_512_bits_2() {
     let mut input = Default::<Array<u32>>::default();
     input.append(0x57652070);
     input.append(0x72657365);
