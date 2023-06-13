@@ -37,18 +37,18 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             }
             let sigma_0 = (*joined_bytes[message_loop_index - 15_usize]).rr_7()
                 ^ (*(joined_bytes[message_loop_index - 15_usize])).rr_18()
-                ^ ((*(joined_bytes[message_loop_index - 15_usize])) / 0x8_u128);
+                ^ (*(joined_bytes[message_loop_index - 15_usize])).shr_3();
             let S_1 = (*(joined_bytes[message_loop_index - 2_usize])).rr_17()
                 ^ (*(joined_bytes[message_loop_index - 2_usize])).rr_19()
-                ^ ((*(joined_bytes[message_loop_index - 2_usize])) / 0x400_u128);
+                ^ (*(joined_bytes[message_loop_index - 2_usize])).shr_10();
             joined_bytes
                 .append(
                     (*(joined_bytes[message_loop_index - 16_usize]))
-                        .wrapping_add(
+                        .modulo_2pow32_add(
                             sigma_0
-                                .wrapping_add(
+                                .modulo_2pow32_add(
                                     (*(joined_bytes[message_loop_index - 7_usize]))
-                                        .wrapping_add(S_1)
+                                        .modulo_2pow32_add(S_1)
                                 )
                         )
                 );
@@ -70,13 +70,13 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             let choice = (*working_hash[3] & *working_hash[2])
                 ^ ((~(*working_hash[3])) & *working_hash[1]);
             let temp_1 = ((*working_hash[0]))
-                .wrapping_add(
+                .modulo_2pow32_add(
                     S_1
-                        .wrapping_add(
+                        .modulo_2pow32_add(
                             choice
-                                .wrapping_add(
+                                .modulo_2pow32_add(
                                     (*round_constants[compression_loop_index])
-                                        .wrapping_add(*joined_bytes[compression_loop_index])
+                                        .modulo_2pow32_add(*joined_bytes[compression_loop_index])
                                 ),
                         )
                 );
@@ -87,18 +87,18 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             let majority = (*working_hash[7] & *working_hash[6])
                 ^ (*working_hash[7] & *working_hash[5])
                 ^ (*working_hash[6] & *working_hash[5]);
-            let temp_2 = S_0.wrapping_add(majority);
+            let temp_2 = S_0.modulo_2pow32_add(majority);
 
             working_hash.pop_front();
             working_hash.append(working_hash.pop_front().unwrap());
             working_hash.append(working_hash.pop_front().unwrap());
             working_hash.append(working_hash.pop_front().unwrap());
-            working_hash.append((*working_hash[0]).wrapping_add(temp_1));
+            working_hash.append((*working_hash[0]).modulo_2pow32_add(temp_1));
             working_hash.pop_front();
             working_hash.append(working_hash.pop_front().unwrap());
             working_hash.append(working_hash.pop_front().unwrap());
             working_hash.append(working_hash.pop_front().unwrap());
-            working_hash.append(temp_1.wrapping_add(temp_2));
+            working_hash.append(temp_1.modulo_2pow32_add(temp_2));
 
             compression_loop_index = compression_loop_index + 1;
         };
@@ -110,7 +110,7 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             hash_values
                 .append(
                     ((hash_values.pop_front().unwrap())
-                        .wrapping_add(working_hash.pop_front().unwrap()))
+                        .modulo_2pow32_add(working_hash.pop_front().unwrap()))
                 );
         };
     };
@@ -124,15 +124,15 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
 use integer::u128_wrapping_add;
 
 impl U128Bit32Operations of SHA256BitOperations<u128> {
-    fn wrapping_add(self: u128, other: u128) -> u128 {
-        u128_wrapping_add(self, other) & 0xFFFFFFFF
+    fn modulo_2pow32_add(self: u128, other: u128) -> u128 {
+        (self+ other) & 0xFFFFFFFF
     }
-    fn shl_30(self: u128) -> u128 {
-        self * 0x40000000
-    }
-    fn shr_2(self: u128) -> u128 {
-        self / 0x4
-    }
+	fn shr_3(self: u128) -> u128 {
+		        self / 0x8
+	}
+	fn shr_10(self: u128) -> u128 {
+		        self / 0x400
+	}
     fn rr_2(self: u128) -> u128 {
         (self & 0xFFFFFFFC) / 0x4 | (self & 0x3) * 0x40000000
     }
@@ -166,8 +166,7 @@ impl U128Bit32Operations of SHA256BitOperations<u128> {
 }
 
 trait SHA256BitOperations<T> {
-    fn shl_30(self: T) -> T;
-    fn shr_2(self: T) -> T;
+    fn modulo_2pow32_add(self: T, other: T) -> T;
     fn rr_2(self: T) -> T;
     fn rr_6(self: T) -> T;
     fn rr_7(self: T) -> T;
@@ -178,7 +177,8 @@ trait SHA256BitOperations<T> {
     fn rr_19(self: T) -> T;
     fn rr_22(self: T) -> T;
     fn rr_25(self: T) -> T;
-    fn wrapping_add(self: T, other: T) -> T;
+	fn shr_3(self: T) -> T;
+	fn shr_10(self: T) -> T;
 }
 
 fn load_hash_constants() -> Array<u128> {
