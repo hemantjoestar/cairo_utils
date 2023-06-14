@@ -28,19 +28,6 @@ fn tests_less_than_512_bits() {
     input.append(0x0);
     input.append(0x0);
     input.append(0x40);
-    // Original api
-    // let mut output = sha_256(input.span()).unwrap();
-    // assert(*output[0] == 4246238833, 'final_hash_0_index check');
-    // assert(*output[1] == 2715154529, 'final_hash_1_index check');
-    // assert(*output[2] == 3111545146, 'final_hash_2_index check');
-    // assert(*output[3] == 2523928951, 'final_hash_3_index check');
-    // assert(*output[4] == 2343742124, 'final_hash_4_index check');
-    // assert(*output[5] == 816016193, 'final_hash_5_index check');
-    // assert(*output[6] == 2467408739, 'final_hash_6_index check');
-    // assert(*output[7] == 3342985673, 'final_hash_7_index check');
-    // let mut u32_array = Default::<Array<u32>>::default();
-    // move_into_narrow(output, ref u32_array);
-    // let hash: u256 = span_pack(u32_array.span()).unwrap();
     let mut u128_array = Default::<Array<u128>>::default();
     copy_into_wide(input.span(), ref u128_array);
     let precomputed_hash: u256 = 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
@@ -84,19 +71,6 @@ fn tests_more_than_512_bits() {
     input.append(0x0);
     input.append(0x0);
     input.append(0x318);
-    // Original api
-    // let mut output = sha_256(input.span()).unwrap();
-    // assert(*output[0] == 2541875948, 'final_hash_0_index check');
-    // assert(*output[1] == 3479205334, 'final_hash_1_index check');
-    // assert(*output[2] == 2534622915, 'final_hash_2_index check');
-    // assert(*output[3] == 1021255763, 'final_hash_3_index check');
-    // assert(*output[4] == 2026962479, 'final_hash_4_index check');
-    // assert(*output[5] == 1611312724, 'final_hash_5_index check');
-    // assert(*output[6] == 2207786822, 'final_hash_6_index check');
-    // assert(*output[7] == 3523740160, 'final_hash_7_index check');
-    // let mut u32_array = Default::<Array<u32>>::default();
-    // move_into_narrow(output, ref u32_array);
-    // let hash: u256 = span_pack(u32_array.span()).unwrap();
     let mut u128_array = Default::<Array<u128>>::default();
     copy_into_wide(input.span(), ref u128_array);
     let precomputed_hash: u256 = 0x9781f2eccf6075d6971346c33cdf205378d0fe2f600aae5483982746d2080200;
@@ -220,19 +194,6 @@ fn tests_more_than_512_bits_2() {
     input.append(0x0);
     input.append(0x0);
     input.append(0xD18);
-    // Original api
-    // let mut output = sha_256(input.span()).unwrap();
-    // assert(*output[0] == 1441192377, 'final_hash_0_index check');
-    // assert(*output[1] == 1769845322, 'final_hash_1_index check');
-    // assert(*output[2] == 2796635096, 'final_hash_2_index check');
-    // assert(*output[3] == 4107306602, 'final_hash_3_index check');
-    // assert(*output[4] == 1148488327, 'final_hash_4_index check');
-    // assert(*output[5] == 1847243362, 'final_hash_5_index check');
-    // assert(*output[6] == 3282689944, 'final_hash_6_index check');
-    // assert(*output[7] == 579914429, 'final_hash_7_index check');
-    // let mut u32_array = Default::<Array<u32>>::default();
-    // move_into_narrow(output, ref u32_array);
-    // let hash: u256 = span_pack(u32_array.span()).unwrap();
     let mut u128_array = Default::<Array<u128>>::default();
     copy_into_wide(input.span(), ref u128_array);
     let precomputed_hash: u256 = 0x55e6d9b9697db24aa6b143d8f4d0866a44748a876e1ab262c3a9df982290cabd;

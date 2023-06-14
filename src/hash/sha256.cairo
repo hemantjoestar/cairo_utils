@@ -35,20 +35,20 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
             if message_loop_index == 64_usize {
                 break ();
             }
-            let sigma_0 = (*joined_bytes[message_loop_index - 15_usize]).rr_7()
+            let s_0 = (*joined_bytes[message_loop_index - 15_usize]).rr_7()
                 ^ (*(joined_bytes[message_loop_index - 15_usize])).rr_18()
                 ^ (*(joined_bytes[message_loop_index - 15_usize])).shr_3();
-            let S_1 = (*(joined_bytes[message_loop_index - 2_usize])).rr_17()
+            let s_1 = (*(joined_bytes[message_loop_index - 2_usize])).rr_17()
                 ^ (*(joined_bytes[message_loop_index - 2_usize])).rr_19()
                 ^ (*(joined_bytes[message_loop_index - 2_usize])).shr_10();
             joined_bytes
                 .append(
                     (*(joined_bytes[message_loop_index - 16_usize]))
                         .modulo_2pow32_add(
-                            sigma_0
+                            s_0
                                 .modulo_2pow32_add(
                                     (*(joined_bytes[message_loop_index - 7_usize]))
-                                        .modulo_2pow32_add(S_1)
+                                        .modulo_2pow32_add(s_1)
                                 )
                         )
                 );
@@ -116,23 +116,22 @@ fn sha_256(mut bytes: Span<u128>) -> Result<u256, felt252> {
     };
 
     reverse_self::<u128>(ref hash_values);
+    // Because actually u32 values inside else could spanpack direct
     let mut output = Default::<Array<u32>>::default();
     move_into_narrow(hash_values, ref output);
     Result::Ok(span_pack(output.span()).unwrap())
 }
 
-use integer::u128_wrapping_add;
-
 impl U128Bit32Operations of SHA256BitOperations<u128> {
     fn modulo_2pow32_add(self: u128, other: u128) -> u128 {
-        (self+ other) & 0xFFFFFFFF
+        (self + other) & 0xFFFFFFFF
     }
-	fn shr_3(self: u128) -> u128 {
-		        self / 0x8
-	}
-	fn shr_10(self: u128) -> u128 {
-		        self / 0x400
-	}
+    fn shr_3(self: u128) -> u128 {
+        self / 0x8
+    }
+    fn shr_10(self: u128) -> u128 {
+        self / 0x400
+    }
     fn rr_2(self: u128) -> u128 {
         (self & 0xFFFFFFFC) / 0x4 | (self & 0x3) * 0x40000000
     }
@@ -177,8 +176,8 @@ trait SHA256BitOperations<T> {
     fn rr_19(self: T) -> T;
     fn rr_22(self: T) -> T;
     fn rr_25(self: T) -> T;
-	fn shr_3(self: T) -> T;
-	fn shr_10(self: T) -> T;
+    fn shr_3(self: T) -> T;
+    fn shr_10(self: T) -> T;
 }
 
 fn load_hash_constants() -> Array<u128> {
