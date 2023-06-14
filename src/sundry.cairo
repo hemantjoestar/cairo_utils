@@ -2,8 +2,9 @@ use array::ArrayTrait;
 use array::SpanTrait;
 use serde::Serde;
 use option::OptionTrait;
-use traits::TryInto;
+// use traits::TryInto;
 use debug::PrintTrait;
+// use traits::BitOr;
 
 impl SpanPrintImpl<
     T, impl TPrint: debug::PrintTrait<T>, impl TCopy: Copy<T>
@@ -51,6 +52,21 @@ impl TBitXor<
         let lhs_u128 = TIntoU128::into(lhs);
         let rhs_u128 = TIntoU128::into(rhs);
         U128TryIntoT::try_into(lhs_u128 ^ rhs_u128).unwrap()
+    }
+}
+impl TBitOr<
+    T, impl TIntoU128: Into<T, u128>, impl U128TryIntoT: TryInto<u128, T>, impl TDrop: Drop<T>, 
+> of BitOr<T> {
+    #[inline(always)]
+    fn bitor(lhs: T, rhs: T) -> T {
+        let lhs_u128 = TIntoU128::into(lhs);
+        let rhs_u128 = TIntoU128::into(rhs);
+        U128TryIntoT::try_into(lhs_u128 | rhs_u128).unwrap()
+    }
+}
+impl TBitNot<T, impl TBounded: BoundedInt<T>, impl TSub: Sub<T>> of BitNot<T> {
+    fn bitnot(a: T) -> T {
+        TSub::sub(TBounded::max(), a)
     }
 }
 
