@@ -12,7 +12,7 @@ use serde::Serde;
 // let test_str = b"starknet";
 #[test]
 #[available_gas(200000000)]
-fn tests_less_than_1024_bits() {
+fn tests_sha512_less_than_1024_bits() {
     let mut input = Default::<Array<u64>>::default();
     input.append(0x737461726B6E6574);
     input.append(0x8000000000000000);
@@ -47,7 +47,7 @@ fn tests_less_than_1024_bits() {
 // let test_str = b"Cairo is the first Turing-complete language for creating provable programs for general computation.";
 #[test]
 #[available_gas(200000000)]
-fn tests_less_than_1024_bits_again() {
+fn tests_sha512_less_than_1024_bits_again() {
     let mut input = Default::<Array<u64>>::default();
     input.append(0x436169726F206973);
     input.append(0x2074686520666972);
@@ -82,7 +82,7 @@ fn tests_less_than_1024_bits_again() {
 // Cairo Wwhitepaper Abstract
 #[test]
 #[available_gas(600000000)]
-fn tests_more_than_1024_bits() {
+fn tests_sha512_more_than_1024_bits() {
     let mut input = Default::<Array<u64>>::default();
     input.append(0x5765207072657365);
     input.append(0x6E7420436169726F);

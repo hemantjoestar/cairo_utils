@@ -8,37 +8,42 @@ use cairo_utils::math_funcs::pow_2;
 trait MaxPack<T, U> {
     fn max_pack_into() -> (usize, usize);
 }
-impl U32MacPackU256 of MaxPack<u32, u256> {
+impl U32MaxPackU256 of MaxPack<u32, u256> {
     fn max_pack_into() -> (usize, usize) {
         (8, 32)
     }
 }
-impl U32MacPackU64 of MaxPack<u32, u64> {
+impl U32MaxPackU64 of MaxPack<u32, u64> {
     fn max_pack_into() -> (usize, usize) {
         (2, 32)
     }
 }
-impl U8MacPackU64 of MaxPack<u8, u64> {
+impl U8MaxPackU64 of MaxPack<u8, u64> {
     fn max_pack_into() -> (usize, usize) {
         (8, 8)
     }
 }
-impl U64MacPackFelt252 of MaxPack<u64, felt252> {
+impl U8MaxPackU256 of MaxPack<u8, u256> {
+    fn max_pack_into() -> (usize, usize) {
+        (32, 8)
+    }
+}
+impl U64MaxPackFelt252 of MaxPack<u64, felt252> {
     fn max_pack_into() -> (usize, usize) {
         (3, 64)
     }
 }
-impl U64MacPackU128 of MaxPack<u64, u128> {
+impl U64MaxPackU128 of MaxPack<u64, u128> {
     fn max_pack_into() -> (usize, usize) {
         (2, 64)
     }
 }
-impl U16MacPackU128 of MaxPack<u16, u128> {
+impl U16MaxPackU128 of MaxPack<u16, u128> {
     fn max_pack_into() -> (usize, usize) {
         (8, 16)
     }
 }
-impl U16MacPackU64 of MaxPack<u16, u64> {
+impl U16MaxPackU64 of MaxPack<u16, u64> {
     fn max_pack_into() -> (usize, usize) {
         (4, 16)
     }
@@ -139,6 +144,14 @@ mod tests {
     use debug::PrintTrait;
     use super::{span_pack, unpack_into};
     use cairo_utils::sundry::{TBitOr, TBitAnd, SpanPrintImpl};
+    #[test]
+    #[available_gas(100000000)]
+    fn tests_simple_sundry() {
+        let given: u256 = 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        let mut array_u8 = Default::<Array<u8>>::default();
+        unpack_into(given, ref array_u8);
+        assert(array_u8.len() == 32, '32 u8s in u256');
+    }
 
     #[test]
     #[available_gas(3000000)]

@@ -29,7 +29,6 @@ fn sha_512(mut bytes: Span<u128>) -> Result<u512, felt252> {
             }
             joined_bytes.append(*bytes.pop_front().unwrap());
         };
-
         // Message Loop
         let mut message_loop_index: usize = 16;
         loop {
