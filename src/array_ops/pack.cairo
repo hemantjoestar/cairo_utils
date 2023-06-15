@@ -1,11 +1,12 @@
 use array::SpanTrait;
 use array::ArrayTrait;
 use option::OptionTrait;
-
+use integer::BoundedInt;
 use cairo_utils::math_funcs::pow_2;
 
+// returns max_pack_possible, T_bit_width
 trait MaxPack<T, U> {
-    fn max_pack_into() -> (usize, usize); // max_pack, T_bit_width
+    fn max_pack_into() -> (usize, usize);
 }
 impl U32MacPackU256 of MaxPack<u32, u256> {
     fn max_pack_into() -> (usize, usize) {
@@ -37,6 +38,11 @@ impl U16MacPackU128 of MaxPack<u16, u128> {
         (8, 16)
     }
 }
+impl U16MacPackU64 of MaxPack<u16, u64> {
+    fn max_pack_into() -> (usize, usize) {
+        (4, 16)
+    }
+}
 // TODO: Wierd error 
 // error: Trait `core::traits::TryInto::<core::integer::u32, core::integer::u8>` has multiple implementations, in: generic param TTryIntoU8, "core::integer::U32TryIntoU8"
 //  --> panicable:17:11
@@ -58,7 +64,7 @@ fn span_pack<
     impl TIntoU: Into<T, U>,
     impl TMaxPackIntoU: MaxPack<T, U>,
     impl U8IntoU: Into<u8, U>,
-    impl TTryIntoU8: TryInto<u32, u8>
+    impl U32TryIntoU8: TryInto<u32, u8>
 >(
     mut in: Span<T>
 ) -> Option<U> {
@@ -77,7 +83,7 @@ fn span_pack<
                 UBitOr::bitor(
                     output,
                     (TIntoU::into(*(in.pop_front().unwrap())))
-                        * pow_2::<U>(TTryIntoU8::try_into(in.len() * T_bit_length).unwrap())
+                        * pow_2::<U>(U32TryIntoU8::try_into(in.len() * T_bit_length).unwrap())
                             .unwrap()
                 );
         };
@@ -85,15 +91,101 @@ fn span_pack<
     }
     Option::None(())
 }
+// T = u64, U = u8
+// impl TTryIntoU8: TryInto<T, u8>,
+fn unpack_into<
+    T,
+    U,
+    impl TDrop: Drop<T>,
+    impl TCopy: Copy<T>,
+    impl TMul: Mul<T>,
+    impl TDiv: Div<T>,
+    impl TBitAnd: BitAnd<T>,
+    impl UDrop: Drop<U>,
+    impl UMaxPackIntoT: MaxPack<U, T>,
+    impl UIntoT: Into<U, T>,
+    impl TTryIntoU: TryInto<T, U>,
+    impl U8IntoT: Into<u8, T>,
+    impl U32TryIntoU8: TryInto<u32, u8>,
+    impl UBounded: BoundedInt<U>,
+>(
+    in: T, ref out: Array<U>
+) {
+    let (max_times, U_bit_length) = UMaxPackIntoT::max_pack_into();
+    let mut index: usize = max_times;
+    loop {
+        if index == 0_usize {
+            break ();
+        }
+        out
+            .append(
+                TTryIntoU::try_into(
+                    (in
+                        / pow_2::<T>(U32TryIntoU8::try_into((index - 1) * U_bit_length).unwrap())
+                            .unwrap())
+                        & UIntoT::into(UBounded::max())
+                )
+                    .unwrap()
+            );
+
+        index = index - 1_usize;
+    };
+}
 #[cfg(test)]
 mod tests {
     use array::SpanTrait;
     use array::ArrayTrait;
     use option::OptionTrait;
     use debug::PrintTrait;
-    use super::span_pack;
-    use cairo_utils::sundry::TBitOr;
+    use super::{span_pack, unpack_into};
+    use cairo_utils::sundry::{TBitOr, TBitAnd, SpanPrintImpl};
 
+    #[test]
+    #[available_gas(3000000)]
+    fn test_unpack_u64_u8() {
+        let in = 0xABCDEF1234567890_u64;
+        let mut u8_array = Default::<Array<u8>>::default();
+        unpack_into(in, ref u8_array);
+        assert(*u8_array[0] == 0xAB_u8, 'index 0');
+        assert(*u8_array[1] == 0xCD_u8, 'index 1');
+        assert(*u8_array[2] == 0xEF_u8, 'index 2');
+        assert(*u8_array[3] == 0x12_u8, 'index 3');
+        assert(*u8_array[4] == 0x34_u8, 'index 4');
+        assert(*u8_array[5] == 0x56_u8, 'index 5');
+        assert(*u8_array[6] == 0x78_u8, 'index 6');
+        assert(*u8_array[7] == 0x90_u8, 'index 7');
+        assert(u8_array.len() == 8, 'u8_array len!=8');
+        let in = 0xABCDEF_u64;
+        unpack_into(in, ref u8_array);
+        assert(*u8_array[8] == 0x00_u8, 'index 8');
+        assert(*u8_array[9] == 0x00_u8, 'index 9');
+        assert(*u8_array[10] == 0x00_u8, 'index 10');
+        assert(*u8_array[11] == 0x00_u8, 'index 11');
+        assert(*u8_array[12] == 0x00_u8, 'index 12');
+        assert(*u8_array[13] == 0xAB_u8, 'index 13');
+        assert(*u8_array[14] == 0xCD_u8, 'index 14');
+        assert(*u8_array[15] == 0xEF_u8, 'index 15');
+        assert(u8_array.len() == 16, 'u8_array len!=16');
+    }
+    #[test]
+    #[available_gas(3000000)]
+    fn test_unpack_u64_u16() {
+        let in = 0xABCDEF1234567890_u64;
+        let mut u16_array = Default::<Array<u16>>::default();
+        unpack_into(in, ref u16_array);
+        assert(u16_array.len() == 4, 'u16_array len!=4');
+        assert(*u16_array[0] == 0xABCD_u16, 'index 0');
+        assert(*u16_array[1] == 0xEF12_u16, 'index 1');
+        assert(*u16_array[2] == 0x3456_u16, 'index 2');
+        assert(*u16_array[3] == 0x7890_u16, 'index 3');
+        let in = 0xABCDEF_u64;
+        unpack_into(in, ref u16_array);
+        assert(*u16_array[4] == 0x0000_u16, 'index 4');
+        assert(*u16_array[5] == 0x0000_u16, 'index 5');
+        assert(*u16_array[6] == 0x00AB_u16, 'index 6');
+        assert(*u16_array[7] == 0xCDEF_u16, 'index 7');
+        assert(u16_array.len() == 8, 'u16_array len!=8');
+    }
     #[test]
     #[available_gas(6000000)]
     fn tests_pack_into_u256() {
@@ -108,9 +200,8 @@ mod tests {
         array_u32.append(3342985673);
         let hash: u256 = span_pack(array_u32.span()).unwrap();
         // let hash: u256 = U32ArrayPackIntoU256::<u32, u256>::pack_into(@array_u32, 8).unwrap();
-        let precomputed_hash: u256 =
-            // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
-            0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        let precomputed_hash: u256 = // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
         assert(hash == precomputed_hash, 'Hash starknet Match fail');
     // let hash: u64 = span_pack(array_u32.span()).unwrap();
     }
@@ -134,7 +225,6 @@ mod tests {
         array_u8.append(0xEF);
         array_u8.append(0x12);
         let packed: u64 = span_pack(array_u8.span()).unwrap();
-        packed.print();
         assert(packed == 0xABCDEF12_u64, 'u32 into u64');
     }
     #[test]
