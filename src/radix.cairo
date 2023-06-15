@@ -17,19 +17,15 @@ fn get_radix_u128(mut in: Span<u8>) -> Array<u128> {
     // didnt follow formula as per 14.5
     // value indicates max limb suffix
     let l = ((n + 1) / k);
-    l.print();
     // Short-circuit
     // Lvl 1. if needed limbs is 1 ie. len <= 32 nibbles or 16 bytes
     // no need to split into 4 bits
     if l == 0 || n == k {
-        'short Lvl: 1'.print();
         out.append(span_pack::<u8, u128>(in).unwrap());
         return out;
     } else {
-        'l == 1'.print();
-        // in.len().print();
-        // let tmp = in.len() - k / 2;
-        // tmp.print();
+		// k/2 since accounting for nibbles, and needed from bottom
+		// k will always be even 
         out.append(span_pack::<u8, u128>(in.slice(in.len() - k / 2, k / 2)).unwrap());
         let mut index: usize = 0;
         loop {
@@ -43,18 +39,13 @@ fn get_radix_u128(mut in: Span<u8>) -> Array<u128> {
     }
     // we need only 4 bits since it is initial base b. aka b = 2^4
     let b = 0x10_u128;
-    // index_i has no effect since is_empty shorts
-    // let mut index_i: usize = 0;
     loop {
         // didnt follow formula as per 14.5, empty check is same
-        // if index_i == l || in.is_empty() {
         if in.is_empty() {
             break ();
         }
         // Inner summation for single limb
-        'summation'.print();
         let mut limb_i = Default::default();
-
         let mut index_j: usize = 0;
         loop {
             if index_j == k || in.is_empty() {
@@ -73,11 +64,8 @@ fn get_radix_u128(mut in: Span<u8>) -> Array<u128> {
             limb_i += a_index_even + a_index_odd;
         };
         out.append(limb_i);
-    // index_i = index_i + 1_usize;
     };
-
     out
-// let out = u512 { limb0: 0x0, limb1: 0x0, limb2: 0x0, limb3: 0x0,  };
 }
 #[cfg(test)]
 mod tests {
@@ -86,7 +74,6 @@ mod tests {
     use cairo_utils::array_ops::{unpack_into};
     use debug::PrintTrait;
     #[test]
-    // #[ignore]
     #[available_gas(100000000)]
     fn tests_radix_u128_limb_0_limb_1() {
         let given: u256 = 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
@@ -98,7 +85,6 @@ mod tests {
         assert(*u128_radix_array[1] == given.high, 'limb_1 != high');
     }
     #[test]
-    #[ignore]
     #[available_gas(100000000)]
     fn tests_radix_u128_limb_0_limb_1_minus_leading_16bits() {
         let given: u256 = 0x7671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
@@ -110,7 +96,6 @@ mod tests {
         assert(*u128_radix_array[1] == given.high, 'limb_1 != high');
     }
     #[test]
-    #[ignore]
     #[available_gas(100000000)]
     fn tests_radix_u128_limb_0_limb_1_minus_trailing_16bits() {
         let given: u256 = 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741;
@@ -122,7 +107,6 @@ mod tests {
         assert(*u128_radix_array[1] == given.high, 'limb_1 != high');
     }
     #[test]
-    #[ignore]
     #[available_gas(5000000)]
     fn tests_radix_u128_limb_0() {
         let mut array_u8 = Default::<Array<u8>>::default();
@@ -148,7 +132,6 @@ mod tests {
         );
     }
     #[test]
-    #[ignore]
     #[available_gas(5000000)]
     fn tests_radix_u128_limb_0_less_than_16_bytes() {
         let mut array_u8 = Default::<Array<u8>>::default();
