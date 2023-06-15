@@ -8,9 +8,19 @@ use cairo_utils::math_funcs::pow_2;
 trait MaxPack<T, U> {
     fn max_pack_into() -> (usize, usize);
 }
-impl U32MaxPackU256 of MaxPack<u32, u256> {
+impl U8MaxPackU64 of MaxPack<u8, u64> {
     fn max_pack_into() -> (usize, usize) {
-        (8, 32)
+        (8, 8)
+    }
+}
+impl U8MaxPackU128 of MaxPack<u8, u128> {
+    fn max_pack_into() -> (usize, usize) {
+        (16, 8)
+    }
+}
+impl U8MaxPackU256 of MaxPack<u8, u256> {
+    fn max_pack_into() -> (usize, usize) {
+        (32, 8)
     }
 }
 impl U32MaxPackU64 of MaxPack<u32, u64> {
@@ -18,14 +28,9 @@ impl U32MaxPackU64 of MaxPack<u32, u64> {
         (2, 32)
     }
 }
-impl U8MaxPackU64 of MaxPack<u8, u64> {
+impl U32MaxPackU256 of MaxPack<u32, u256> {
     fn max_pack_into() -> (usize, usize) {
-        (8, 8)
-    }
-}
-impl U8MaxPackU256 of MaxPack<u8, u256> {
-    fn max_pack_into() -> (usize, usize) {
-        (32, 8)
+        (8, 32)
     }
 }
 impl U64MaxPackFelt252 of MaxPack<u64, felt252> {
@@ -213,8 +218,9 @@ mod tests {
         array_u32.append(3342985673);
         let hash: u256 = span_pack(array_u32.span()).unwrap();
         // let hash: u256 = U32ArrayPackIntoU256::<u32, u256>::pack_into(@array_u32, 8).unwrap();
-        let precomputed_hash: u256 = // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
-        0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        let precomputed_hash: u256 =
+            // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+            0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
         assert(hash == precomputed_hash, 'Hash starknet Match fail');
     // let hash: u64 = span_pack(array_u32.span()).unwrap();
     }
@@ -251,5 +257,29 @@ mod tests {
         array_u16.append(0x7890);
         let packed: u128 = span_pack(array_u16.span()).unwrap();
         assert(packed == 0xABCDEF1234567890_u128, 'u16 into u128');
+    }
+    #[test]
+    #[available_gas(6000000)]
+    fn tests_pack_u8_into_u128() {
+        let mut array_u8 = Default::<Array<u8>>::default();
+        // array_u8.append(0xAB);
+        array_u8.append(0xCD);
+        array_u8.append(0xEF);
+        array_u8.append(0x12);
+        array_u8.append(0x34);
+        array_u8.append(0x56);
+        array_u8.append(0x78);
+        array_u8.append(0x90);
+        array_u8.append(0xAB);
+        array_u8.append(0xCD);
+        array_u8.append(0xEF);
+        array_u8.append(0x12);
+        array_u8.append(0x34);
+        array_u8.append(0x56);
+        array_u8.append(0x78);
+        array_u8.append(0x90);
+        let packed: u128 = span_pack(array_u8.span()).unwrap();
+        // assert(packed == 0xABCDEF1234567890ABCDEF1234567890_u128, 'u8 into u128');
+        assert(packed == 0xCDEF1234567890ABCDEF1234567890_u128, 'u8 into u128');
     }
 }
