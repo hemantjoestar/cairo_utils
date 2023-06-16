@@ -94,7 +94,6 @@ fn span_pack<
                     output,
                     (TIntoU::into(*(in.pop_front().unwrap())))
                         * pow_2::<U>(U32TryIntoU8::try_into(in.len() * T_bit_length).unwrap())
-                            .unwrap()
                 );
         };
         return Option::Some(output);
@@ -130,9 +129,7 @@ fn unpack_into<
         out
             .append(
                 TTryIntoU::try_into(
-                    (in
-                        / pow_2::<T>(U32TryIntoU8::try_into((index - 1) * U_bit_length).unwrap())
-                            .unwrap())
+                    (in / pow_2::<T>(U32TryIntoU8::try_into((index - 1) * U_bit_length).unwrap()))
                         & UIntoT::into(UBounded::max())
                 )
                     .unwrap()
@@ -218,9 +215,8 @@ mod tests {
         array_u32.append(3342985673);
         let hash: u256 = span_pack(array_u32.span()).unwrap();
         // let hash: u256 = U32ArrayPackIntoU256::<u32, u256>::pack_into(@array_u32, 8).unwrap();
-        let precomputed_hash: u256 =
-            // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
-            0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        let precomputed_hash: u256 = // 0xfd187671a1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
+        0xa1d5f861b976693a967019778bb2aaac30a36b419311ab63c741e9c9;
         assert(hash == precomputed_hash, 'Hash starknet Match fail');
     // let hash: u64 = span_pack(array_u32.span()).unwrap();
     }

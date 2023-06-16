@@ -24,8 +24,8 @@ fn get_radix_u128(mut in: Span<u8>) -> Array<u128> {
         out.append(span_pack::<u8, u128>(in).unwrap());
         return out;
     } else {
-		// k/2 since accounting for nibbles, and needed from bottom
-		// k will always be even 
+        // k/2 since accounting for nibbles, and needed from bottom
+        // k will always be even 
         out.append(span_pack::<u8, u128>(in.slice(in.len() - k / 2, k / 2)).unwrap());
         let mut index: usize = 0;
         loop {
@@ -55,11 +55,9 @@ fn get_radix_u128(mut in: Span<u8>) -> Array<u128> {
             let u8_unit = (*in.pop_back().unwrap()).into();
             let low_4_bits = u8_unit & 0x0F_u128;
             let high_4_bits = (u8_unit & 0xF0_u128) / 0x10_u128;
-            let a_index_even = low_4_bits
-                * (pow_x::<u128>(b, index_j.try_into().unwrap()).unwrap());
+            let a_index_even = low_4_bits * pow_x::<u128>(b, index_j.try_into().unwrap());
             index_j = index_j + 1_usize;
-            let a_index_odd = high_4_bits
-                * (pow_x::<u128>(b, index_j.try_into().unwrap()).unwrap());
+            let a_index_odd = high_4_bits * pow_x::<u128>(b, index_j.try_into().unwrap());
             index_j = index_j + 1_usize;
             limb_i += a_index_even + a_index_odd;
         };
