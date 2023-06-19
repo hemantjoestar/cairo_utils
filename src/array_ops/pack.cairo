@@ -86,15 +86,22 @@ fn span_pack<
     if in.len() <= max_times {
         let mut output = Default::<U>::default();
         loop {
-            if in.is_empty() {
-                break ();
-            }
-            output =
-                UBitOr::bitor(
-                    output,
-                    (TIntoU::into(*(in.pop_front().unwrap())))
-                        * pow_2::<U>(U32TryIntoU8::try_into(in.len() * T_bit_length).unwrap())
-                );
+            match in.pop_front() {
+                Option::Some(v) => {
+                    output =
+                        UBitOr::bitor(
+                            output,
+                            TIntoU::into(*v)
+                                * pow_2::<U>(
+                                    // capped by preceeding if
+                                    U32TryIntoU8::try_into(in.len() * T_bit_length).unwrap()
+                                )
+                        );
+                },
+                Option::None(_) => {
+                    break ();
+                },
+            };
         };
         return Option::Some(output);
     }
@@ -145,7 +152,7 @@ mod tests {
     use option::OptionTrait;
     use debug::PrintTrait;
     use super::{span_pack, unpack_into};
-    use cairo_utils::sundry::{TBitOr, TBitAnd, SpanPrintImpl};
+    use cairo_utils::sundry::{SpanPrintImpl};
     #[test]
     #[available_gas(100000000)]
     fn tests_simple_sundry() {

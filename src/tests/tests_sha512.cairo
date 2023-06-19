@@ -38,11 +38,8 @@ fn tests_sha512_less_than_1024_bits() {
         limb2: 0xFC258B6F0D92290B3B86B6FD5D8847BA,
         limb3: 0x1D9AC9FDE6731D226BD4A2BA6BA6EADC,
     };
-    let hash = sha_512(u128_array.span()).unwrap();
-    let mut tmp_1 = Default::default();
-    hash.serialize(ref tmp_1);
-    tmp_1.print();
-    assert(sha_512(u128_array.span()).unwrap() == precomputed_hash, 'Hash starknet Match fail');
+    let computed_hash = sha_512(u128_array.span()).unwrap();
+    assert(computed_hash == precomputed_hash, 'Hash starknet Match fail');
 }
 // let test_str = b"Cairo is the first Turing-complete language for creating provable programs for general computation.";
 #[test]
@@ -73,11 +70,8 @@ fn tests_sha512_less_than_1024_bits_again() {
         limb1: 0xEB33956F8C79DA09AA3E19D18DF5D802,
         limb0: 0x98DA7F977BADCAA9BDBF8B248B186A5B
     };
-    let hash = sha_512(u128_array.span()).unwrap();
-    let mut tmp_1 = Default::default();
-    hash.serialize(ref tmp_1);
-    tmp_1.print();
-    assert(sha_512(u128_array.span()).unwrap() == precomputed_hash, 'Hash starknet Match fail');
+    let computed_hash = sha_512(u128_array.span()).unwrap();
+    assert(computed_hash == precomputed_hash, 'Hash starknet Match fail');
 }
 // Cairo Wwhitepaper Abstract
 #[test]
@@ -156,9 +150,6 @@ fn tests_sha512_more_than_1024_bits() {
         limb1: 0xF4340836B589135156B9E0940955C977,
         limb0: 0x3B41EFA8F3985F2B0744D3D639D339B,
     };
-    let hash = sha_512(u128_array.span()).unwrap();
-    let mut tmp_1 = Default::default();
-    hash.serialize(ref tmp_1);
-    tmp_1.print();
-    assert(sha_512(u128_array.span()).unwrap() == precomputed_hash, 'Hash CWP Match fail');
+    let computed_hash = sha_512(u128_array.span()).unwrap();
+    assert(computed_hash == precomputed_hash, 'Hash starknet Match fail');
 }

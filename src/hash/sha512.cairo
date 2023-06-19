@@ -123,10 +123,10 @@ fn sha_512(mut bytes: Span<u128>) -> Result<u512, felt252> {
     move_into_narrow(hash_values, ref u64_array);
     // pack 8 u64s into 4 u128s
     let mut u128_array = Default::<Array<u128>>::default();
-    u128_array.append(span_pack(u64_array.span().slice(0, 2)).unwrap());
-    u128_array.append(span_pack(u64_array.span().slice(2, 2)).unwrap());
-    u128_array.append(span_pack(u64_array.span().slice(4, 2)).unwrap());
     u128_array.append(span_pack(u64_array.span().slice(6, 2)).unwrap());
+    u128_array.append(span_pack(u64_array.span().slice(4, 2)).unwrap());
+    u128_array.append(span_pack(u64_array.span().slice(2, 2)).unwrap());
+    u128_array.append(span_pack(u64_array.span().slice(0, 2)).unwrap());
     // move u128 array into felt array
     let mut felt252_array = Default::default();
     move_into_wide(u128_array, ref felt252_array);
