@@ -11,7 +11,6 @@ fn sha_512(mut bytes: Span<u128>) -> Result<u512, felt252> {
     if (bytes.len() % 16_usize != 0) {
         return Result::Err('Input_length_!=16');
     }
-    // Using Span resolved issue. check TODO in compression section
     // Span
     let round_constants = load_round_constants();
     // Array
@@ -113,25 +112,18 @@ fn sha_512(mut bytes: Span<u128>) -> Result<u512, felt252> {
     };
 
     reverse_self::<u128>(ref hash_values);
-    // tmp print
-    // let mut tmp = Default::default();
-    // Serde::serialize(@hash_values, ref tmp);
-    // tmp.print();
-    // Because actually u64 values inside else could spanpack direct
     let mut u64_array = Default::<Array<u64>>::default();
     // u128 -> u64
     move_into_narrow(hash_values, ref u64_array);
-    // pack 8 u64s into 4 u128s
-    let mut u128_array = Default::<Array<u128>>::default();
-    u128_array.append(span_pack(u64_array.span().slice(6, 2)).unwrap());
-    u128_array.append(span_pack(u64_array.span().slice(4, 2)).unwrap());
-    u128_array.append(span_pack(u64_array.span().slice(2, 2)).unwrap());
-    u128_array.append(span_pack(u64_array.span().slice(0, 2)).unwrap());
-    // move u128 array into felt array
-    let mut felt252_array = Default::default();
-    move_into_wide(u128_array, ref felt252_array);
-    let mut felt252_span = felt252_array.span();
-    Result::Ok(Serde::deserialize(ref felt252_span).unwrap())
+    // pack 8 u64s into 4 u128s into u512 limbs
+    let tmp_span = u64_array.span();
+    let out = u512 {
+        limb0: span_pack(tmp_span.slice(6, 2)).unwrap(),
+        limb1: span_pack(tmp_span.slice(4, 2)).unwrap(),
+        limb2: span_pack(tmp_span.slice(2, 2)).unwrap(),
+        limb3: span_pack(tmp_span.slice(0, 2)).unwrap(),
+    };
+    Result::Ok(out)
 }
 
 impl U128Bit64Operations of SHA256BitOperations<u128> {
