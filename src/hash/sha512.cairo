@@ -112,6 +112,8 @@ fn sha_512(mut bytes: Span<u128>) -> Result<u512, felt252> {
     };
 
     reverse_self::<u128>(ref hash_values);
+    // can be optimized by directly using hash_values into u512
+    // but much cleaner atleast for now
     let mut u64_array = Default::<Array<u64>>::default();
     // u128 -> u64
     move_into_narrow(hash_values, ref u64_array);

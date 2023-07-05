@@ -33,7 +33,7 @@ impl TSerdeImpl<
     }
 }
 
-impl TBitNot<T, impl TBounded: BoundedInt<T>, impl TSub: Sub<T>> of BitNot<T> {
+impl TBitNot<T, impl TBounded: integer::BoundedInt<T>, impl TSub: Sub<T>> of BitNot<T> {
     fn bitnot(a: T) -> T {
         TSub::sub(TBounded::max(), a)
     }

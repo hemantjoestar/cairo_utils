@@ -161,7 +161,7 @@ mod tests {
         };
         assert(result == prepared, 'u512 check fail');
 
-		// Another u512
+        // Another u512
         let lhs = 0x56CF6B29B9ABCC3507D9FA4C08AEE93A0FC2479F810E926AC6689A057C790193_u256;
         let rhs = 0x42FD1C0A816CAE53630D75B648E333775A79BF4D680B7B85B4035232BFFC4DD9_u256;
         let mut u8_array = Default::<Array<u8>>::default();
